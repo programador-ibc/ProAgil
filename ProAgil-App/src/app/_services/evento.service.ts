@@ -11,7 +11,7 @@ export class EventoService {
 
   constructor(private http: HttpClient) {}
 
-    getAllEventos():  Observable<Evento[]> {
+   getAllEventos():  Observable<Evento[]> {
     return this.http.get<Evento[]>(this.baseURL);
    }
    
@@ -21,6 +21,16 @@ export class EventoService {
    
    getEventoById(id: number):  Observable<Evento> {
     return this.http.get<Evento>(`${this.baseURL}/${id}`);
+   }
+
+   postUpload(file: File, name: string) {
+    const fileToUpload = <File>file[0];
+    const formData = new FormData();
+
+    formData.append('file', fileToUpload, name);
+
+
+     return this.http.post(`${this.baseURL}/upload`, formData)
    }
    
    postEvento(evento: Evento): Observable<Evento> {

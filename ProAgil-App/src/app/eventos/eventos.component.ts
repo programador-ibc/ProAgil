@@ -18,10 +18,9 @@ defineLocale('pt-br', ptBrLocale);
   styleUrls: ['./eventos.component.css']
 })
 export class EventosComponent implements OnInit {
-
-
-
+  
  _filtroLista: string;
+  fileNameToUpdate: string;
 
  get filtroLista(): string {
    return this._filtroLista;
@@ -43,6 +42,8 @@ export class EventosComponent implements OnInit {
   modoSalvar = 'post';
   bodyDeletarEvento = "";
   dataEvento: Date;
+  file: File;
+  dataAtual: string;
 
   constructor(
     private eventoService: EventoService
@@ -67,8 +68,10 @@ export class EventosComponent implements OnInit {
   editarEvento(evento: Evento, template: any) {
     this.modoSalvar = 'put';
     this.openModal(template);
-    this.evento = evento;
-    this.registerForm.patchValue(evento);
+    this.evento = Object.assign({}, evento);
+    this.fileNameToUpdate = evento.imagemURL.toString();
+    this.evento.imagemURL = '';
+    this.registerForm.patchValue(this.evento);
   }
 
   novoEvento(template: any){
@@ -118,11 +121,46 @@ export class EventosComponent implements OnInit {
     );
   }
 
+  onFileChange(event){
+    const reader = new FileReader();
+
+    if (event.target.files && event.target.files.length) {
+      this.file = event.target.files;
+      console.log(this.file);
+    }
+  }
+
+  uploadImagem() {
+    if (this.modoSalvar === 'post'){
+      const nomeArquivo = this.evento.imagemURL.split('\\', 3)
+      
+      //Adiciona a data no nome para diferenciar a imagem com o mesmo nome
+
+      const nomeArquivoAtual =new Date().getMilliseconds().toString() + nomeArquivo[2];    
+
+      this.evento.imagemURL = nomeArquivoAtual;
+
+      this.eventoService.postUpload(this.file, nomeArquivoAtual).subscribe( () => {
+        this.dataAtual = new Date().getMilliseconds().toString();
+        this.getEventos();
+      });
+    }else{
+      this.evento.imagemURL = this.fileNameToUpdate;
+      this.eventoService.postUpload(this.file, this.fileNameToUpdate).subscribe( () => {
+        this.dataAtual = new Date().getMilliseconds().toString();
+        this.getEventos();
+      });
+    }
+  }
+
   salvarAlteracao(template: any) {
 
     if (this.registerForm.valid) {
       if (this.modoSalvar === 'post'){
         this.evento = Object.assign({}, this.registerForm.value);
+
+        this.uploadImagem();
+
         this.eventoService.postEvento(this.evento).subscribe(
           (evento: Evento) => {
             template.hide();
@@ -134,6 +172,9 @@ export class EventosComponent implements OnInit {
         });
       } else {
         this.evento = Object.assign({id: this.evento.id}, this.registerForm.value);
+
+        this.uploadImagem();
+
         this.eventoService.putEvento(this.evento).subscribe(
           (evento: Evento) => {
             template.hide();
@@ -152,7 +193,7 @@ export class EventosComponent implements OnInit {
     this.eventoService.getAllEventos().subscribe((_eventos: Evento[]) => {
       this.eventos = _eventos;
       this.eventosFiltrados = this.eventos;
-      console.log(this.eventos);
+      //console.log(this.eventos);
     }, error => {
       this.toastr.error(`Erro ao tentar Carregar eventos: ${error}`);
     });
