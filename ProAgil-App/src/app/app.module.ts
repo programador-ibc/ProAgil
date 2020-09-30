@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing.module';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
@@ -20,6 +20,11 @@ import { ContatosComponent } from './contatos/contatos.component';
 
 import { DateTimeFormatPipePipe } from './_helps/date-time-format-pipe.pipe';
 import { DateFormatPipePipe } from './_helps/date-format-pipe.pipe';
+import { UserComponent } from './user/user.component';
+import { LoginComponent } from './user/login/login.component';
+import { RegistrationComponent } from './user/registration/registration.component';
+import { EventoService } from './_services/evento.service';
+import { AuthInterceptor } from "src/app/auth/auth.interceptor";
 
 @NgModule({
   declarations: [
@@ -31,7 +36,10 @@ import { DateFormatPipePipe } from './_helps/date-format-pipe.pipe';
     ContatosComponent,
     TituloComponent,
     DateTimeFormatPipePipe,
-    DateFormatPipePipe
+    DateFormatPipePipe,
+    UserComponent,
+    LoginComponent,
+    RegistrationComponent
   ],
   imports: [
     BrowserModule,
@@ -50,7 +58,14 @@ import { DateFormatPipePipe } from './_helps/date-format-pipe.pipe';
       preventDuplicates: true,
     })
   ],
-  providers: [],
+  providers: [
+    EventoService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
