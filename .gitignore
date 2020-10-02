@@ -2,6 +2,7 @@
 
 # .NET Core Project
 
+dist
 bin
 obj
 
